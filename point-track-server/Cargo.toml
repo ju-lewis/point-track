@@ -1,0 +1,20 @@
+[package]
+name = "point-track-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+argon2 = {version = "0.5.3", features = ["password-hash"]}
+axum = {version = "0.7.5", features = ["macros"]}
+axum-extra = {version = "0.9.3", features = ["cookie", "cookie-private"]}
+axum-login = "0.15.1"
+hyper = "1.2.0"
+random-string = "1.1.0"
+serde = {version = "1.0.197", features = ["derive"]}
+sqlx = {version = "0.7.4", features = ["sqlite", "runtime-tokio", "macros"]}
+tera = "1.19.1"
+tokio = {version = "1.37.0", features = ["rt-multi-thread"]}
+tower = "0.4.13"
+tower-http = {version = "0.5.2", features = ["fs"]}

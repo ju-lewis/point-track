@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Point Track Control Panel</title>
+		<link href="css/control-panel.css" rel="stylesheet">
+		<!-- <script src="https://unpkg.com/htmx.org@1.9.12"></script> -->
+	</head>
+
+	<body>
+		<!-- Informational Header -->
+		<header>
+			<h1>{{yacht_club}} - Point-Track Controller</h1>
+		</header>
+
+
+		<div>
+			
+			<!-- Control Buttons -->
+			<div>
+				<button id="start-btn" onclick="startRace()">Start Race</button>
+
+				<button></button>
+			</div>
+
+			<div id="current-results">
+				<h1> Race Result Live Update</h1>
+				<!-- Result Table -->
+				<table>
+
+					<!-- Header -->
+					<thead>
+						<tr>
+							<th>Competition Number</th>
+							<th>Boat Name</th>
+							<th>Skipper | Navigator</th>
+							<th>Nominated Speed</th>
+							<th>Penalty</th>
+							<th>Points Lost</th>
+							<th>Total Points</th>
+							<th></th> <!-- Notes? -->
+						</tr>
+					</thead>
+
+
+					<!-- Body -->
+					<tbody id="results">
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+	</body>
+	<script src="js/control-panel.js"></script>
+</html>

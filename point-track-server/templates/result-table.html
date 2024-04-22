@@ -1,0 +1,12 @@
+{% for row in race_results %}
+	<tr>
+		<td>{{row.comp_no}}</td>
+		<td>{{row.boat_name}}</td>
+		<td>{{row.skipper}}, {{row.navigator}}</td>
+		<td>{{row.nominated_speed}}</td>
+		<td>{{row.penalty}}</td>
+		<td>{{row.points_lost}}</td>
+		<td>{{row.total_points}}</td>
+		<td>{{row.notes}}</td>
+	</tr>
+{% endfor %}

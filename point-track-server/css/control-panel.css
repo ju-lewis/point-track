@@ -1,0 +1,19 @@
+
+header h1 {
+	text-align: center;
+}
+
+table {
+	width: 100%;
+	padding: 40px;
+	text-align: center;
+}
+
+tbody tr:nth-child(odd) {
+	background-color: #eeeeff;
+}
+
+tbody tr:nth-child(even) {
+	background-color: white;
+}
+
