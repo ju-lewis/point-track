@@ -5,7 +5,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Point Track Control Panel</title>
 		<link href="css/control-panel.css" rel="stylesheet">
+		<link href="css/button.css" rel="stylesheet">
 		<!-- <script src="https://unpkg.com/htmx.org@1.9.12"></script> -->
+
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
 	</head>
 
 	<body>
@@ -15,42 +21,106 @@
 		</header>
 
 
-		<div>
-			
-			<!-- Control Buttons -->
+		<div class="h-flex-container">
 			<div>
-				<button id="start-btn" onclick="startRace()">Start Race</button>
+				<!-- Control Buttons -->
+				<div class="center">
+					<button id="start-btn" onclick="startRace()" class="submit">Start Race</button>
+				</div>
 
-				<button></button>
+				<div id="current-results">
+					<h1 class="center">Race Result Live Update</h1>
+					<!-- Result Table -->
+					<table id="result-table">
+
+						<!-- Header -->
+						<thead>
+							<tr>
+								<th>Competition Number</th>
+								<th>Boat Name</th>
+								<th>Skipper | Navigator</th>
+								<th>Nominated Speed</th>
+								<th>Penalty</th>
+								<th>Points Lost</th>
+								<th>Total Points</th>
+								<th></th> <!-- Notes? -->
+							</tr>
+						</thead>
+
+
+						<!-- Body -->
+						<tbody id="results">
+						</tbody>
+					</table>
+				</div>
 			</div>
 
-			<div id="current-results">
-				<h1> Race Result Live Update</h1>
-				<!-- Result Table -->
-				<table>
+			<!-- Boat Race Plan Entry -->
+			<div>
+				
+				<div style="margin-bottom: 2em; text-align: center;">
+					<label for="race-date" style="display: block;">Race Date</label>
+					<input type="date" id="race-date" style="display: block; margin: auto; margin-top: 8px;"/>
+				</div>
 
-					<!-- Header -->
-					<thead>
-						<tr>
-							<th>Competition Number</th>
-							<th>Boat Name</th>
-							<th>Skipper | Navigator</th>
-							<th>Nominated Speed</th>
-							<th>Penalty</th>
-							<th>Points Lost</th>
-							<th>Total Points</th>
-							<th></th> <!-- Notes? -->
-						</tr>
-					</thead>
+				<hr />
 
+				<div style="text-align: center; margin-top: 24px; display: flex;">
+					<div style="margin-right: 8px;">
+						<label for="comp-num" style="display: block;">Comp No</label>
+						<input placeholder="Boat Competition Number" id="comp-num" type="number" />
+					</div>
 
-					<!-- Body -->
-					<tbody id="results">
-					</tbody>
-				</table>
+					<div style="margin-left: 8px;">
+						<label for="nom-speed" style="display: block;">Nom. Speed (Knots)</label>
+						<input placeholder="Nominated Speed" id="nom-speed" type="number" />
+					</div>
+				</div>
+
+				<div class="h-flex-container" style="padding: 0px; padding-top: 16px;">
+					<span style="margin-right: 4px;">Point Name</span>
+					<span style="margin-left: 4px;">Passing Side</span>
+					<span style="margin-left: 4px;">Predicted Time</span>
+				</div>
+
+				<ul id="race-points" style="padding-left: 0; text-align: center; width: 100%;">
+				</ul>
+
+				<div class="h-flex-container">
+					<button onclick="addRacePoint()" class="secondary-btn" style="width: 50%; margin-right: 12px;">Add Point to Course</button>
+					<button onclick="registerBoat()" class="submit" style="width: 50%; margin-left: 12px;">Register Boat</button>
+				</div>
+
 			</div>
 		</div>
 
 	</body>
 	<script src="js/control-panel.js"></script>
+	<script type="text/javascript">
+		function addRacePoint() {
+			const pointList = document.getElementById("race-points");
+			const numPoints = pointList.children.length;
+		
+			let newPoint = document.createElement("li");
+			newPoint.innerHTML = `
+				<select class="race-point" name="id-${numPoints}">
+					<option value="-1">None</option>
+					{% for point in possible_points %}
+						<option value="{{ point.id }}">{{ point.name }}</option>
+					{% endfor %}
+				</select>
+				|
+				<select class="race-point-side" name="side-${numPoints}">
+					<option value="0">Port</option>
+					<option value="1">Starboard</option>
+				</select>
+				|
+				<input type="time" step="1" class="passing-time" style="margin-left: 8px;"/>
+			`;
+			newPoint.setAttribute("style", "display: flex;");
+			
+
+			pointList.appendChild(newPoint);
+		}
+	</script>
 </html>

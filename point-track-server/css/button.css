@@ -1,6 +1,5 @@
 
 .submit {
-	
 	padding: 0.5em;
 
 	/* Color / Animation */
@@ -13,4 +12,19 @@
 }
 .submit:hover {
 	background-color: #448baa;
+}
+
+.secondary-btn {
+	padding: 0.5em;
+
+	/* Color / Animation */
+	background-color: transparent;
+	border: 2px solid #66adcc;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: ease 0.2s;
+	color: #66adcc;
+}
+.secondary-btn:hover {
+	background-color: #00000022;
 }

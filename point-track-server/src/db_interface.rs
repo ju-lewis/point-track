@@ -1,3 +1,4 @@
+use serde::Serialize;
 use sqlx::{
     prelude::FromRow, sqlite::{SqlitePool, SqlitePoolOptions}
 };  
@@ -12,7 +13,7 @@ use argon2::{
     Argon2
 };
 
-use std::{intrinsics::r#try, time::Duration};
+use std::{time::Duration};
 
 #[derive(Clone)]
 pub struct Database {
@@ -30,6 +31,12 @@ impl YachtClub {
             name: String::new()
         };
     }
+}
+
+#[derive(FromRow, Serialize)]
+pub struct CoursePoint {
+    name: String,
+    id: i64
 }
 
 
@@ -57,7 +64,7 @@ impl Database {
         let argon2 = Argon2::default();
         let hash: String = argon2.hash_password(password, &salt).unwrap().to_string();
         
-        println!("{hash}");
+        //println!("{hash}");
 
         // Check if email is already registered
         let res: (u32, ) = sqlx::query_as(&format!("SELECT * FROM account WHERE username = '{username}';"))
@@ -67,7 +74,7 @@ impl Database {
             .unwrap_or((0, )); // Unwrap Option - If no account was found (None returned), set count to 0
         
         if res.0 == 1 {
-            println!("Account exists!");
+            //println!("Account exists!");
             return Err("Account already exists.");
         }
 
@@ -75,14 +82,14 @@ impl Database {
         let result = sqlx::query(&format!("INSERT INTO yachtClub (name) VALUES ('{yacht_club}');")).execute(&self.conn).await;
 
         if !result.is_ok() {
-            println!("Signup Error!");
+            //println!("Signup Error!");
             return Err("Error Creating Yacht Club.");
         }
         
         // Now create account
         let yacht_club_id = result.unwrap().last_insert_rowid();
         let acc_result = sqlx::query(&format!("INSERT INTO account VALUES ({}, '{}', '{}');", yacht_club_id, username, hash)).execute(&self.conn).await;
-        println!("{acc_result:?}");
+        //println!("{acc_result:?}");
         
         match acc_result {
             Ok(x) => return Ok(x.last_insert_rowid()),      // Return account ID if successful
@@ -112,13 +119,13 @@ impl Database {
         }
         let credentials = maybe_credentials.unwrap();
 
-        println!("Credentials: {credentials:?}");
+        //println!("Credentials: {credentials:?}");
 
         // Extract hash from response
         let db_password_hash = PasswordHash::new(&(credentials.2));
         // Return false if there was a hashing error
         if db_password_hash.is_err() {
-            println!("Couldn't form PasswordHash from credential");
+            //println!("Couldn't form PasswordHash from credential");
             return false;
         }
 
@@ -175,7 +182,7 @@ impl Database {
                         .await
                         .unwrap_or( Vec::new() );  // Unwrap result (Empty vector if query failed)
         
-        println!("token: {token}   token_list: {valid_tokens:?}");
+        //println!("token: {token}   token_list: {valid_tokens:?}");
 
         // If the current token is valid for the account, return true
         if valid_tokens.contains( &(token.to_string(), ) ) {
@@ -213,6 +220,18 @@ impl Database {
         }
 
         return maybe_yacht_club.unwrap();
+    }
+
+    pub async fn get_all_known_points(&self) -> Vec<CoursePoint> {
+        let course_points: Vec<CoursePoint> = sqlx::query_as("SELECT name, pointId FROM coursePoint;")
+            .fetch_all(&self.conn).await.unwrap_or(Vec::new());
+
+        return course_points;
+    }
+
+    pub async fn insert_new_course_point(&self, ) {
+        todo!("Read points from csv");
+        //sqlx::query()
     }
 
     pub fn compute_race_results(&self) {

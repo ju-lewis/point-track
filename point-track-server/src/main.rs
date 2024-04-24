@@ -15,7 +15,7 @@ use axum::{
     Router,
 };
 use axum_extra::{extract::{cookie::{Cookie, Key, PrivateCookieJar}, CookieJar}, response::Html};
-use db_interface::{Database, YachtClub};
+use db_interface::{CoursePoint, Database, YachtClub};
 use forms::LoginForm;
 use results::RaceResult;
 use serde::Deserialize;
@@ -120,6 +120,9 @@ async fn get_control_panel(jar: CookieJar, State(db): State<Database>) -> (Cooki
     let backup_cookie =  Cookie::new("username", "");
     let username = jar.get("username").unwrap_or(&backup_cookie).value();
     let yacht_club: YachtClub = db.get_yacht_club_info(username).await;
+
+    // Get all recorded course points
+    let course_points: Vec<CoursePoint> = db.get_all_known_points().await;
     
     // Create templating context
     let tera = Tera::new("./templates/*").unwrap();
@@ -127,6 +130,9 @@ async fn get_control_panel(jar: CookieJar, State(db): State<Database>) -> (Cooki
 
     // Insert yacht club name
     context.insert("yacht_club", &yacht_club.name);
+
+    // Insert course points
+    context.insert("possible_points", &course_points);
 
 
     let rendered: String = tera.render("control-panel.html", &context).unwrap_or(String::new());
@@ -142,7 +148,11 @@ async fn get_result_updates() -> Html<String> {
     let mut context = tera::Context::new();
 
     let mut race_results: Vec<RaceResult> = Vec::new();
-    race_results.push(RaceResult::test()); // Push test data
+
+    // Push test data
+    for _ in 0..8 {
+        race_results.push(RaceResult::test()); 
+    }
 
     // Insert all current results into race_results
     context.insert("race_results", &race_results);

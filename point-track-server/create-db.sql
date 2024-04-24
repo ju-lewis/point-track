@@ -37,7 +37,10 @@ CREATE TABLE IF NOT EXISTS boat (
 	compNumber INTEGER NOT NULL,
 	name VARCHAR(100) NOT NULL,
 	skipper VARCHAR(100) NOT NULL,
-	navigator VARCHAR(100) NOT NULL
+	navigator VARCHAR(100) NOT NULL,
+	yachtClubId INTEGER NOT NULL,
+
+	FOREIGN KEY(yachtClubId) REFERENCES yachtClub(yachtClubId)
 );
 
 CREATE TABLE IF NOT EXISTS boatRace (
@@ -59,9 +62,10 @@ CREATE TABLE IF NOT EXISTS boatRace (
 /* Stores the pre-recorded points used in the races */
 CREATE TABLE IF NOT EXISTS coursePoint (
 	pointId INTEGER PRIMARY KEY AUTOINCREMENT,
+	name VARCHAR(80) NOT NULL,
 	latitude FLOAT NOT NULL,
-	longitude FLOAT NOT NULL,
-	passingSide BOOLEAN  -- 0 = port, 1 = starboard
+	longitude FLOAT NOT NULL
+	-- passingSide BOOLEAN  -- 0 = port, 1 = starboard
 
 );
 

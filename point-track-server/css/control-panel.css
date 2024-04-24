@@ -1,6 +1,15 @@
 
+body {
+	font-family: "Roboto", sans-serif;
+}
+
 header h1 {
 	text-align: center;
+}
+
+#start-btn {
+	font-size: 1.2em;
+	margin: auto;
 }
 
 table {
@@ -17,3 +26,48 @@ tbody tr:nth-child(even) {
 	background-color: white;
 }
 
+thead th {
+	padding: 4px;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+#results tr {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+
+.h-flex-container {
+	display: flex;
+	flex-direction: row;
+
+	justify-content: space-evenly;
+
+	padding: 40px;
+}
+
+.center {
+	text-align: center;
+}
+
+#race-points {
+	list-style: none;
+}
+
+#race-points li {
+	padding: 8px;
+}
+.race-point {
+	margin-right: 8px;
+
+	width: fit-content;
+	min-width: 30%;
+}
+.race-point-side {
+	margin-left: 8px;
+	margin-right: 8px;
+
+	width: fit-content;
+	min-width: 30%;
+}
