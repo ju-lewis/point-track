@@ -1,12 +1,16 @@
 
-var raceRunning = false;
-
 const UPDATE_PERIOD = 60; // Seconds
 
-function delay(millis) {
-	return new Promise(resolve => {
-		setTimeout(() => { resolve('') }, millis);
-	});
+async function queryResults() {
+	let response = await (await fetch("/poll-results")).text();
+	console.log("A");
+
+	// Now update table body
+	document.getElementById("results").innerHTML = response;
+}
+
+async function queryNTRIP() {
+	
 }
 
 async function startRace() {
@@ -16,25 +20,19 @@ async function startRace() {
 	startButton.innerHTML = "Stop Race";
 	startButton.setAttribute("onclick", "stopRace()");
 
-	raceRunning = true;
 
 	// Now loop while requesting result updates
-	while(raceRunning) {
-		let response = await (await fetch("/poll-results")).text();
-		//console.log(response);
-
-		// Now update table body
-		document.getElementById("results").innerHTML = response;
-		await delay(UPDATE_PERIOD);
-	}
-
+	setInterval(queryResults, UPDATE_PERIOD * 1000);
 }
+
 
 function stopRace() {
 	// Update button
 	let startButton = document.getElementById("start-btn");
 	startButton.innerHTML = "Start Race";
 	startButton.setAttribute("onclick", "startRace()");
+
+	clearInterval(queryResults);
 }
 
 

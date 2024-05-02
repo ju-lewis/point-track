@@ -19,14 +19,16 @@ use db_interface::{CoursePoint, Database, YachtClub};
 use forms::LoginForm;
 use results::RaceResult;
 use serde::Deserialize;
+//use reqwest;
 
 use tower_http::services::{ServeDir, ServeFile};
 
 // Templating imports
 use tera::Tera;
 
-// DB imports
+const TEST_INSTANCE: bool = true;
 
+// DB imports
 #[derive(Clone)]
 struct AppState {
     pub key: Key,
@@ -76,8 +78,12 @@ async fn main() {
 /*
     Basic login page
 */
-async fn get_login() -> Response {
-
+async fn get_login(State(db): State<Database>) -> Response {
+    
+    // Create test account if running a test instance
+    if TEST_INSTANCE {
+        db.test_signup().await;
+    }
 
     return Html(fs::read_to_string("templates/login.html").unwrap()).into_response();
 }

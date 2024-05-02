@@ -12,6 +12,9 @@ axum-extra = {version = "0.9.3", features = ["cookie", "cookie-private"]}
 axum-login = "0.15.1"
 hyper = "1.2.0"
 random-string = "1.1.0"
+#requests = "0.0.30"
+#reqwest = "0.12.4"
+security-framework = "2.10.0"
 serde = {version = "1.0.197", features = ["derive"]}
 sqlx = {version = "0.7.4", features = ["sqlite", "runtime-tokio", "macros"]}
 tera = "1.19.1"

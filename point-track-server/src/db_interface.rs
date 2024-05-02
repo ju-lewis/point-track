@@ -13,7 +13,7 @@ use argon2::{
     Argon2
 };
 
-use std::{time::Duration};
+use std::{fs, time::Duration};
 
 #[derive(Clone)]
 pub struct Database {
@@ -229,9 +229,11 @@ impl Database {
         return course_points;
     }
 
-    pub async fn insert_new_course_point(&self, ) {
-        todo!("Read points from csv");
-        //sqlx::query()
+    pub async fn insert_new_course_point(&self, filename: &str) {
+
+        let csv_string = fs::read_to_string(filename);
+        
+
     }
 
     pub fn compute_race_results(&self) {
