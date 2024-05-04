@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Register New Boat</title>
+		<link href="css/new-boat.css" rel="stylesheet">
+		<link href="css/button.css" rel="stylesheet">
+
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+	</head>
+	<body>
+
+		<header>
+			<a href="/home">Return to Race Management Page</a>
+		</header>
+
+		<form action="/new-boat" method="post">
+
+			<div style="display: flex; flex-direction: row;">
+				<div style="flex-grow: 1; margin-right: 1em;">
+					<label for="comp-num" style="display: block; width: 100%;">Competition Number</label>
+					<input id="comp-num" name="comp_number" type="number" style="display: block; width: 100%;"/>
+				</div>
+
+				<div style="flex-grow: 1; margin-left: 1em;">
+					<label for="boat-name" style="display: block; width: 100%;">Boat Name</label>
+					<input id="boat-name" name="name" style="display: block; width: 100%;"/>
+				</div>
+			</div>
+
+			<label for="skipper">Skipper</label>
+			<input id="skipper" name="skipper">
+
+			<label for="navigator">Navigator</label>
+			<input id="navigator" name="navigator">
+	
+
+			<button class="submit" type="submit">Register</button>
+		</form>
+	</body>
+</html>

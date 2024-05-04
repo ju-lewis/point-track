@@ -1,0 +1,31 @@
+
+body {
+	font-family: roboto;
+}
+
+header {
+	margin-bottom: 2em;
+	padding: 8px;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	width: 30vw;
+	margin: auto;
+}
+
+input {
+	margin-bottom: 1em;
+}
+
+button {
+	margin: auto;
+	margin-top: 2em;
+}
+
+@media screen and (max-width: 800px) {
+	form {
+		width: 100vw;
+	}
+}

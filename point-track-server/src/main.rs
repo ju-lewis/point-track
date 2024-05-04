@@ -59,12 +59,13 @@ async fn main() {
         .route("/login", get(get_login).post(login_user))
         .route("/signup", get(get_signup))
         .route("/home", get(get_control_panel))
+        .route("/new-boat", get(get_boat_registration_page).post(register_boat))
         
         /* NEEDS UPDATING (IN TEST STATE) */
         .route("/load-points", get(load_points))
 
         /* API ROUTES */
-        .route("/register-boat", post(register_boat_in_race))
+        .route("/race-register-boat", post(register_boat_in_race))
         .route("/get-registered-boats", get(get_registered_boats))
         .route("/poll-results", get(get_result_updates))
 
@@ -208,7 +209,7 @@ async fn register_boat_in_race(State(db): State<Database>, jar: CookieJar, Json(
 
     // Look up the boatId
     let maybe_id = db.boat_id_lookup(username, comp_num).await;
-    if maybe_id.is_none() {
+    if maybe_id.is_none() || race_id == -1 {
         // Notify user the boat has not been registered in the system.
         return (jar, StatusCode::NOT_FOUND);
     }
@@ -220,8 +221,17 @@ async fn register_boat_in_race(State(db): State<Database>, jar: CookieJar, Json(
     return (jar, StatusCode::OK);
 }
 
-async fn register_boat(State(db): State<Database>, Form(boat_registration): Form<RegisterBoatForm>) -> StatusCode {
+async fn register_boat(State(db): State<Database>, jar: CookieJar, Form(boat_registration): Form<RegisterBoatForm>) -> StatusCode {
 
+    let maybe_username = jar.get("username");
+    if maybe_username.is_none() {return StatusCode::UNAUTHORIZED;}
+    let username = maybe_username.unwrap().value();
+
+    let id = db.get_yacht_club_id(username).await;
+    if id == -1 {return StatusCode::INTERNAL_SERVER_ERROR;}
+
+    let maybe_boat_id = db.register_new_boat(boat_registration, id).await;
+    if maybe_boat_id.is_none() {return StatusCode::INTERNAL_SERVER_ERROR;}
 
     return StatusCode::OK;
 }
@@ -238,3 +248,8 @@ async fn get_registered_boats(State(db): State<Database>, jar: CookieJar, date: 
 
     return (StatusCode::OK, Json(registered_boats));
 }
+
+async fn get_boat_registration_page() -> Html<String> {
+    return Html(fs::read_to_string("templates/register.html").unwrap_or("".to_string()));
+}
+

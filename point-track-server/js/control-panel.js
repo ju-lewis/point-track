@@ -75,7 +75,7 @@ async function registerBoat() {
 	console.log({"boat": compNum, "race_date": raceUnixTime, "nom_speed": nomSpeed, "points": pointList});
 
 	// Register the boat on the server
-	const response = await fetch("/register-boat", {
+	const response = await fetch("/race-register-boat", {
 		method: "POST",
 		headers: {
 			"content-type": "application/json"
