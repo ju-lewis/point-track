@@ -1,19 +1,21 @@
 use serde::Serialize;
 use sqlx::{
-    prelude::FromRow, sqlite::{SqlitePool, SqlitePoolOptions}
+    prelude::FromRow, sqlite::{SqlitePool, SqlitePoolOptions, SqliteQueryResult},
 };  
 use random_string::generate;
 
-use axum_extra::extract::cookie::{CookieJar, Cookie};
+use axum_extra::extract::cookie::CookieJar;
 use argon2::{
     password_hash::{
-        rand_core::{OsRng, RngCore},
+        rand_core::OsRng,
         PasswordHash, PasswordHasher, PasswordVerifier, SaltString
     },
     Argon2
 };
 
 use std::{fs, time::Duration};
+
+use crate::forms::RegisterBoatForm;
 
 #[derive(Clone)]
 pub struct Database {
@@ -25,6 +27,7 @@ pub struct YachtClub {
     pub name: String
 }
 
+
 impl YachtClub {
     pub fn new() -> Self {
         return YachtClub {
@@ -33,10 +36,17 @@ impl YachtClub {
     }
 }
 
-#[derive(FromRow, Serialize)]
-pub struct CoursePoint {
+#[derive(FromRow, Serialize, Debug)]
+pub struct CoursePointName {
     name: String,
     id: i64
+}
+
+// Note: coordinates are in dddmmsss format
+pub struct CoursePoint {
+    name: String,
+    lat: i32,
+    lon: i32
 }
 
 
@@ -222,18 +232,162 @@ impl Database {
         return maybe_yacht_club.unwrap();
     }
 
-    pub async fn get_all_known_points(&self) -> Vec<CoursePoint> {
-        let course_points: Vec<CoursePoint> = sqlx::query_as("SELECT name, pointId FROM coursePoint;")
-            .fetch_all(&self.conn).await.unwrap_or(Vec::new());
+    pub async fn get_yacht_club_id(&self, username: &str) -> i64 {
+        
+        // Query all yacht club information
+        let maybe_yacht_club: Option<(i64, )> = sqlx::query_as(&format!("SELECT yachtClub.yachtClubId FROM 
+                                                                    yachtClub INNER JOIN account
+                                                                    ON account.yachtClubId = yachtClub.yachtClubId
+                                                                    WHERE username = '{username}' LIMIT 1;"))
+        .fetch_optional(&self.conn)
+        .await
+        .unwrap_or(None);
+        
+        if maybe_yacht_club.is_none() {
+            return -1;
+        }
+    
+        // Return the ID
+        return maybe_yacht_club.unwrap().0;
+    }
 
+    pub async fn get_all_known_points(&self) -> Vec<CoursePointName> {
+        let course_points: Vec<CoursePointName> = sqlx::query_as("SELECT name, pointId as id FROM coursePoint;")
+            .fetch_all(&self.conn).await.unwrap();
         return course_points;
     }
 
-    pub async fn insert_new_course_point(&self, filename: &str) {
+    pub async fn insert_course_points(&self, filename: &str) {
 
-        let csv_string = fs::read_to_string(filename);
+        let csv_string: String = fs::read_to_string(filename).unwrap_or("".to_string());
         
+        let mut header: bool = true;
 
+        let mut new_points: Vec<CoursePoint> = Vec::new();
+
+        let lines = csv_string.split('\n');
+        for line in lines {
+            // Skip the header (so we don't try to parse strings)
+            if header {
+                header = false;
+                continue
+            };
+
+            let elements: Vec<&str> = line.split(',').collect();
+            if elements.len() != 3 {
+                // Alert user the CSV is in the wrong format
+                break;
+            }
+            // The format will now be:
+            // [name, lat, lon]
+            //println!("{}", (&(elements[2][0..elements[2].len()-3])).trim());
+            new_points.push(CoursePoint {
+                name: elements[0].to_string(),
+                lat: (&(elements[1][0..elements[1].len()-1])).trim().parse().unwrap_or(0),
+                lon: (&(elements[2][0..elements[2].len()-3])).trim().parse().unwrap_or(0),
+            });
+
+        }
+
+        // We can now format and insert all of the processed points
+        let mut query: String = "INSERT INTO coursePoint (name, latitude, longitude) VALUES ".to_string();
+        for (i, point) in new_points.iter().enumerate() {
+            query.push_str(&format!("(\"{}\", {}, {})", point.name, point.lat, point.lon));
+
+            // Add comma if we're adding another point
+            if i < new_points.len()-1 {
+                query.push_str(",\n");
+            }
+        }
+        query.push_str(";\n");
+        
+        println!("{}", query);
+        let _ = sqlx::query(&query).execute(&self.conn).await;
+    }
+
+    pub async fn does_race_exist(&self, username: &str, date: i64) -> Option<i64> {
+        let res: Option<(i64, i64, i64)>  = sqlx::query_as(&format!("SELECT * FROM yachtClub INNER JOIN account
+                                                        ON yachtClub.yachtClubId = account.yachtClubId
+                                                        INNER JOIN race ON race.yachtClubId = account.yachtClubId
+                                                        WHERE account.username = '{}' AND race.raceDate = {};", username, date))
+            .fetch_optional(&self.conn)
+            .await.unwrap_or(None);
+        
+        if res.is_none() {
+            return None;
+        }
+
+        // Return race ID
+        let race_id = res.unwrap().0;
+        return Some(race_id);
+    }
+
+    pub async fn create_race(&self, date: i64, yacht_club_id: i64) -> i64 {
+        let res: Result<SqliteQueryResult, sqlx::Error>= sqlx::query(&format!(
+            "INESRT INTO race (raceDate, yachtClubId) VALUES
+            ({date}, {yacht_club_id});"))
+        .execute(&self.conn).await;
+        
+        if res.is_err() {
+            return -1;
+        }
+
+        return res.unwrap().last_insert_rowid();
+    }
+
+    pub async fn register_boat_in_race(&self, race_id: i64, boat_id: i64, nominated_speed: i64) {
+        let _res = sqlx::query(&format!("INSERT INTO boatRace (boatId, raceId, nominatedSpeed)
+                    VALUES ({boat_id}, {race_id}, {nominated_speed});"))
+        .execute(&self.conn).await;
+    }
+
+    pub async fn get_registered_boats_in_race(&self, date: i64) -> Vec<String> {
+        let boat_stats: Vec<(String, String, String)> = 
+            match sqlx::query_as(&format!(
+                "SELECT name, skipper, navigator FROM
+                boat NATURAL JOIN boatRace NATURAL JOIN race
+                WHERE raceDate = {date}"))
+                .fetch_all(&self.conn).await {
+                    Ok(stats) => stats,
+                    Err(_) => Vec::new()
+            };
+
+        let mut boats: Vec<String> = Vec::new();
+        
+        // Add all boats to the vector
+        for boat in boat_stats.iter() {
+        boats.push(format!("{} | {}, {}", 
+            boat.0, boat.1, boat.2));
+        }
+
+        return boats;
+    }
+
+    pub async fn boat_id_lookup(&self, username: &str, comp_num: i64) -> Option<i64> {
+        let maybe_id: Option<(i64, )> = sqlx::query_as(&format!("SELECT boatId FROM boat 
+                        NATURAL JOIN yachtClub NATURAL JOIN account
+                        WHERE account.username='{username}' AND boat.compNumber = {comp_num};"))
+                        .fetch_optional(&self.conn)
+                        .await
+                        .unwrap_or(None);
+
+        if maybe_id.is_none() {
+            return None;
+        }
+        return Some(maybe_id.unwrap().0);
+    }
+
+    pub async fn register_new_boat(&self, boat_form: RegisterBoatForm, yacht_club_id: i64) -> Option<i64> {
+        let res = sqlx::query(&format!("INSERT INTO boat (compNumber, name, skipper, navigator, yachtClubId)
+                    VALUES ({}, {}, {}, {}, {});",
+                    boat_form.comp_number, boat_form.name, boat_form.skipper,
+                    boat_form.navigator, yacht_club_id))
+        .execute(&self.conn).await;
+        
+        return match res {
+            Ok(result) => Some(result.last_insert_rowid()),
+            Err(_) => None
+        };
     }
 
     pub fn compute_race_results(&self) {

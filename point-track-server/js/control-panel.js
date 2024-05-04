@@ -35,13 +35,22 @@ function stopRace() {
 	clearInterval(queryResults);
 }
 
+function parseTimeStr(timeStr) {
+	const elements = timeStr.split(":");
+
+	// Convert the HH:MM:SS time to integer seconds
+	return parseInt(elements[0])*3600 + parseInt(elements[1])*60 + parseInt(elements[2]);
+}
+
 
 async function registerBoat() {
 
 	const compNum = parseInt(document.getElementById("comp-num").value);
 	const pointElements = document.getElementById("race-points").children;
-	
-	let raceDate = document.getElementById("race-date").value;
+	let raceDate = new Date(document.getElementById("race-date").value);
+	let raceUnixTime = raceDate.getTime()*1000;
+
+	let nomSpeed = parseInt(document.getElementById("nom-speed").value);
 
 	// Store all of the point IDs
 	let pointList = new Array();
@@ -49,11 +58,12 @@ async function registerBoat() {
 
 		let pointId = parseInt(pointElements[i].querySelector(".race-point").value);
 		let pointSide = parseInt(pointElements[i].querySelector(".race-point-side").value);
-		let pointTime = pointElements[i].querySelector(".passing-time").value;
+		let pointTime = parseTimeStr(pointElements[i].querySelector(".passing-time").value);
+
 
 		console.log(raceDate + " " + pointTime);
 
-		let pointDateTime = (new Date(raceDate + " " + pointTime)).getTime();
+		let pointDateTime = raceDate.getTime()*1000 + pointTime;
 
 		// Filter out NaNs
 		pointId = isNaN(pointId) ? -1 : pointId;
@@ -62,16 +72,44 @@ async function registerBoat() {
 		pointList.push({"id": pointId, "side": pointSide, "time": pointDateTime});
 	}
 
-	console.log({"boat": compNum, "points": pointList});
+	console.log({"boat": compNum, "race_date": raceUnixTime, "nom_speed": nomSpeed, "points": pointList});
 
 	// Register the boat on the server
 	const response = await fetch("/register-boat", {
-		method: "post",
+		method: "POST",
 		headers: {
 			"content-type": "application/json"
 		},
-		body: JSON.stringify({"boat": compNum, "points": pointList})
+		body: JSON.stringify({"boat": compNum, "race_date": raceUnixTime, "nom_speed": nomSpeed, "points": pointList})
 	});
-	const responseVal = await response.json();
+	
+	const status = response.status;
+	if(status == 422) {
+		// There was a parsing error, notify user
+	} else if (status == 404) {
+		// The boat has not been registered in the system yet
+		alert(`You must first register boat ${compNum} in the system before they can join a race.`);
+	} else if (status != 200) {
+		// There was another kind of error
+	}
+
+	// We know registration was successful, re-query registered boat list
+	getRegisteredBoats();
+}
+
+async function getRegisteredBoats() {
+	const raceUnixDate = (new Date(document.getElementById("race-date").value)).getTime();
+
+
+
+	const res = await fetch(`/get-registered-boats?date=${raceUnixDate}`);
+
+	if(res.status != 200) {
+		// Show error modal, couldn't retrieve registered boats 
+	}
+	const boats = await res.json();
+
+	console.log("Registered boats:");
+	console.log(boats);
 }
 

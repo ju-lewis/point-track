@@ -9,17 +9,16 @@ mod results;
 
 // Server imports
 use axum::{
-    extract::{Form, FromRef, State}, 
+    extract::{Form, FromRef, State, Json, Query}, 
     response::{IntoResponse, Redirect, Response}, 
     routing::{get, post}, 
     Router,
+    http::StatusCode
 };
 use axum_extra::{extract::{cookie::{Cookie, Key, PrivateCookieJar}, CookieJar}, response::Html};
-use db_interface::{CoursePoint, Database, YachtClub};
-use forms::LoginForm;
+use db_interface::{CoursePointName, Database, YachtClub};
+use forms::{LoginForm, RaceRegisterBoat, DateQuery, RegisterBoatForm};
 use results::RaceResult;
-use serde::Deserialize;
-//use reqwest;
 
 use tower_http::services::{ServeDir, ServeFile};
 
@@ -56,12 +55,19 @@ async fn main() {
 
     // Create app
     let app = Router::new()
-        .route("/", get(get_login))         // Index routes to login for now
+        .route("/", get(get_login))         // Index routes to login for now 
         .route("/login", get(get_login).post(login_user))
         .route("/signup", get(get_signup))
         .route("/home", get(get_control_panel))
+        
+        /* NEEDS UPDATING (IN TEST STATE) */
+        .route("/load-points", get(load_points))
 
+        /* API ROUTES */
+        .route("/register-boat", post(register_boat_in_race))
+        .route("/get-registered-boats", get(get_registered_boats))
         .route("/poll-results", get(get_result_updates))
+
         .nest_service("/css", ServeDir::new("css"))
         .nest_service("/js", ServeDir::new("js"))
         .with_state(state);
@@ -128,7 +134,8 @@ async fn get_control_panel(jar: CookieJar, State(db): State<Database>) -> (Cooki
     let yacht_club: YachtClub = db.get_yacht_club_info(username).await;
 
     // Get all recorded course points
-    let course_points: Vec<CoursePoint> = db.get_all_known_points().await;
+    let course_points: Vec<CoursePointName> = db.get_all_known_points().await;
+
     
     // Create templating context
     let tera = Tera::new("./templates/*").unwrap();
@@ -167,3 +174,67 @@ async fn get_result_updates() -> Html<String> {
     return Html(rendered_table);
 }
 
+
+async fn load_points(State(db): State<Database>) -> String {
+    
+    db.insert_course_points("./new-posts.csv").await;
+
+    String::from("test")
+}
+
+async fn register_boat_in_race(State(db): State<Database>, jar: CookieJar, Json(register): Json<RaceRegisterBoat>) -> (CookieJar, StatusCode) {
+    
+    // Get username
+    let maybe_username = jar.get("username");
+
+    // If no username was found, return unauthorized error
+    if maybe_username.is_none() {return (jar, StatusCode::UNAUTHORIZED);}
+
+    let username: &str = maybe_username.unwrap().value();
+    let date = register.race_date;
+
+    // Get yacht club ID
+    let yacht_club_id: i64 = db.get_yacht_club_id(username).await;
+
+    
+    // Check if the race has been registered for the date
+    let race_id = match db.does_race_exist(username, date).await {
+        None => db.create_race(date, yacht_club_id).await,
+        Some(race_id) => race_id
+    };
+
+    // Parsing must have been successful, we can insert data
+    let comp_num = register.boat;
+
+    // Look up the boatId
+    let maybe_id = db.boat_id_lookup(username, comp_num).await;
+    if maybe_id.is_none() {
+        // Notify user the boat has not been registered in the system.
+        return (jar, StatusCode::NOT_FOUND);
+    }
+    let boat_id = maybe_id.unwrap();
+
+    let nom_speed: i64 = register.nom_speed;
+    
+    db.register_boat_in_race(race_id, boat_id, nom_speed).await;
+    return (jar, StatusCode::OK);
+}
+
+async fn register_boat(State(db): State<Database>, Form(boat_registration): Form<RegisterBoatForm>) -> StatusCode {
+
+
+    return StatusCode::OK;
+}
+
+async fn get_registered_boats(State(db): State<Database>, jar: CookieJar, date: Query<DateQuery>) -> (StatusCode, Json<Vec<String>>) {
+    
+    // Get username
+    let maybe_username = jar.get("username");
+
+    // If no username was found, return unauthorized error
+    if maybe_username.is_none() {return (StatusCode::UNAUTHORIZED, Json(Vec::new()));}
+    
+    let registered_boats = db.get_registered_boats_in_race(date.0.date).await;
+
+    return (StatusCode::OK, Json(registered_boats));
+}
