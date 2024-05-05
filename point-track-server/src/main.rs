@@ -75,7 +75,7 @@ async fn main() {
 
     
     // Create tokio tcp listener
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:10000").await.unwrap();
 
     // Serve app with tokio listener
     axum::serve(listener, app).await.unwrap();
