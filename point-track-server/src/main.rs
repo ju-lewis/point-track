@@ -196,13 +196,14 @@ async fn register_boat_in_race(State(db): State<Database>, jar: CookieJar, Json(
 
     // Get yacht club ID
     let yacht_club_id: i64 = db.get_yacht_club_id(username).await;
-
     
     // Check if the race has been registered for the date
     let race_id = match db.does_race_exist(username, date).await {
         None => db.create_race(date, yacht_club_id).await,
         Some(race_id) => race_id
     };
+    
+    println!("Found race: {race_id}");
 
     // Parsing must have been successful, we can insert data
     let comp_num = register.boat;
@@ -221,19 +222,19 @@ async fn register_boat_in_race(State(db): State<Database>, jar: CookieJar, Json(
     return (jar, StatusCode::OK);
 }
 
-async fn register_boat(State(db): State<Database>, jar: CookieJar, Form(boat_registration): Form<RegisterBoatForm>) -> StatusCode {
+async fn register_boat(State(db): State<Database>, jar: CookieJar, Form(boat_registration): Form<RegisterBoatForm>) -> Redirect {
 
     let maybe_username = jar.get("username");
-    if maybe_username.is_none() {return StatusCode::UNAUTHORIZED;}
+    if maybe_username.is_none() {return Redirect::to("/login");}
     let username = maybe_username.unwrap().value();
 
     let id = db.get_yacht_club_id(username).await;
-    if id == -1 {return StatusCode::INTERNAL_SERVER_ERROR;}
+    if id == -1 {return Redirect::to("/login");}
 
     let maybe_boat_id = db.register_new_boat(boat_registration, id).await;
-    if maybe_boat_id.is_none() {return StatusCode::INTERNAL_SERVER_ERROR;}
+    if maybe_boat_id.is_none() {return Redirect::to("/new-boat");}
 
-    return StatusCode::OK;
+    return Redirect::to("/new-boat");
 }
 
 async fn get_registered_boats(State(db): State<Database>, jar: CookieJar, date: Query<DateQuery>) -> (StatusCode, Json<Vec<String>>) {
@@ -243,13 +244,33 @@ async fn get_registered_boats(State(db): State<Database>, jar: CookieJar, date: 
 
     // If no username was found, return unauthorized error
     if maybe_username.is_none() {return (StatusCode::UNAUTHORIZED, Json(Vec::new()));}
+    let username: &str = maybe_username.unwrap().value();
     
-    let registered_boats = db.get_registered_boats_in_race(date.0.date).await;
+    let registered_boats = db.get_registered_boats_in_race(date.0.date, username).await;
 
     return (StatusCode::OK, Json(registered_boats));
 }
 
-async fn get_boat_registration_page() -> Html<String> {
-    return Html(fs::read_to_string("templates/register.html").unwrap_or("".to_string()));
+async fn get_boat_registration_page(State(db): State<Database>, jar: CookieJar) -> Response {
+
+    // Get username
+    let username = match jar.get("username") {
+        Some(x) => x.value(),
+        None => {return Redirect::to("/login").into_response()}
+    };
+    
+    let yacht_club: YachtClub = db.get_yacht_club_info(username).await;
+    
+    let boats: Vec<RegisterBoatForm> = db.get_all_registered_boats(username).await;
+
+    // Create templating context
+    let tera = Tera::new("./templates/*").unwrap();
+    let mut context = tera::Context::new();
+
+    context.insert("yacht_club", &yacht_club.name);
+    context.insert("boats", &boats);
+
+    let rendered_page: String = tera.render("register.html", &context).unwrap_or(String::new());
+    return Html(rendered_page).into_response();
 }
 

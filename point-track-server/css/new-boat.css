@@ -8,10 +8,14 @@ header {
 	padding: 8px;
 }
 
+.page-main {
+	width: 100vw;
+	display: flex;
+}
+
 form {
 	display: flex;
 	flex-direction: column;
-	width: 30vw;
 	margin: auto;
 }
 
@@ -24,8 +28,8 @@ button {
 	margin-top: 2em;
 }
 
+
 @media screen and (max-width: 800px) {
 	form {
-		width: 100vw;
 	}
 }

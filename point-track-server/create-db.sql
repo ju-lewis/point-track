@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS yachtClub (
 	name VARCHAR(255) NOT NULL
 );
 
-
 /* Login credentials */
 CREATE TABLE IF NOT EXISTS account (
 	yachtClubId INTEGER NOT NULL,

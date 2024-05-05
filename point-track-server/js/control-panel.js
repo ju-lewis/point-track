@@ -98,8 +98,8 @@ async function registerBoat() {
 }
 
 async function getRegisteredBoats() {
-	const raceUnixDate = (new Date(document.getElementById("race-date").value)).getTime();
-
+	// Multiply by 1000 to convert from milliseconds since Epoch to Unix time
+	const raceUnixDate = (new Date(document.getElementById("race-date").value)).getTime()*1000;
 
 
 	const res = await fetch(`/get-registered-boats?date=${raceUnixDate}`);

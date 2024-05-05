@@ -16,29 +16,42 @@
 		<header>
 			<a href="/home">Return to Race Management Page</a>
 		</header>
+		
+		<div class="page-main">
+			<form action="/new-boat" method="post">
 
-		<form action="/new-boat" method="post">
+				<div style="display: flex; flex-direction: row;">
+					<div style="flex-grow: 1; margin-right: 1em;">
+						<label for="comp-num" style="display: block; width: 100%;">Competition Number</label>
+						<input id="comp-num" name="comp_number" type="number" style="display: block; width: 100%;"/>
+					</div>
 
-			<div style="display: flex; flex-direction: row;">
-				<div style="flex-grow: 1; margin-right: 1em;">
-					<label for="comp-num" style="display: block; width: 100%;">Competition Number</label>
-					<input id="comp-num" name="comp_number" type="number" style="display: block; width: 100%;"/>
+					<div style="flex-grow: 1; margin-left: 1em;">
+						<label for="boat-name" style="display: block; width: 100%;">Boat Name</label>
+						<input id="boat-name" name="name" style="display: block; width: 100%;"/>
+					</div>
 				</div>
 
-				<div style="flex-grow: 1; margin-left: 1em;">
-					<label for="boat-name" style="display: block; width: 100%;">Boat Name</label>
-					<input id="boat-name" name="name" style="display: block; width: 100%;"/>
-				</div>
-			</div>
+				<label for="skipper">Skipper</label>
+				<input id="skipper" name="skipper">
 
-			<label for="skipper">Skipper</label>
-			<input id="skipper" name="skipper">
-
-			<label for="navigator">Navigator</label>
-			<input id="navigator" name="navigator">
+				<label for="navigator">Navigator</label>
+				<input id="navigator" name="navigator">
 	
 
-			<button class="submit" type="submit">Register</button>
-		</form>
+				<button class="submit" type="submit">Register</button>
+			</form>
+
+			<!-- List of registered boats -->
+			<div style="width: 50%;">
+				<h1>All Registered Boats for {{yacht_club}}</h1>
+				<ul>
+					{% for boat in boats %}
+						<li>{{boat.name}} (Comp Number: {{boat.comp_number}}) | {{boat.skipper}}, {{boat.navigator}}</li>
+					{% endfor %}
+				</ul>
+			</div>
+		</div>
+
 	</body>
 </html>

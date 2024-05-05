@@ -306,10 +306,10 @@ impl Database {
     }
 
     pub async fn does_race_exist(&self, username: &str, date: i64) -> Option<i64> {
-        let res: Option<(i64, i64, i64)>  = sqlx::query_as(&format!("SELECT * FROM yachtClub INNER JOIN account
+        let res: Option<(i64, )>  = sqlx::query_as(&format!("SELECT race.raceId FROM yachtClub INNER JOIN account
                                                         ON yachtClub.yachtClubId = account.yachtClubId
                                                         INNER JOIN race ON race.yachtClubId = account.yachtClubId
-                                                        WHERE account.username = '{}' AND race.raceDate = {};", username, date))
+                                                        WHERE account.username = '{username}' AND race.raceDate = {date};"))
             .fetch_optional(&self.conn)
             .await.unwrap_or(None);
         
@@ -323,9 +323,11 @@ impl Database {
     }
 
     pub async fn create_race(&self, date: i64, yacht_club_id: i64) -> i64 {
+
+        println!("Creating race: date={date}  yacht_club={yacht_club_id}");
+        
         let res: Result<SqliteQueryResult, sqlx::Error>= sqlx::query(&format!(
-            "INESRT INTO race (raceDate, yachtClubId) VALUES
-            ({date}, {yacht_club_id});"))
+            "INSERT INTO race (raceDate, yachtClubId) VALUES ({date}, {yacht_club_id});"))
         .execute(&self.conn).await;
         
         if res.is_err() {
@@ -341,17 +343,21 @@ impl Database {
         .execute(&self.conn).await;
     }
 
-    pub async fn get_registered_boats_in_race(&self, date: i64) -> Vec<String> {
+    pub async fn get_registered_boats_in_race(&self, date: i64, username: &str) -> Vec<String> {
+        println!("Querying db for: {date}   {username}");
+
         let boat_stats: Vec<(String, String, String)> = 
             match sqlx::query_as(&format!(
                 "SELECT name, skipper, navigator FROM
-                boat NATURAL JOIN boatRace NATURAL JOIN race
-                WHERE raceDate = {date}"))
+                boat INNER JOIN boatRace ON boat.boatId = boatRace.boatId 
+                INNER JOIN race ON race.raceId = boatRace.raceId 
+                INNER JOIN account ON race.yachtClubId = account.yachtClubId 
+                WHERE raceDate = {date} AND account.username = '{username}';"))
                 .fetch_all(&self.conn).await {
                     Ok(stats) => stats,
                     Err(_) => Vec::new()
             };
-
+        println!("All boats in race for {username}: {boat_stats:?}");
         let mut boats: Vec<String> = Vec::new();
         
         // Add all boats to the vector
@@ -365,12 +371,12 @@ impl Database {
 
     pub async fn boat_id_lookup(&self, username: &str, comp_num: i64) -> Option<i64> {
         let maybe_id: Option<(i64, )> = sqlx::query_as(&format!("SELECT boatId FROM boat 
-                        NATURAL JOIN yachtClub NATURAL JOIN account
+                        INNER JOIN yachtClub ON boat.yachtClubId = yachtClub.yachtClubId
+                        INNER JOIN account ON account.yachtClubId = yachtClub.yachtClubId
                         WHERE account.username='{username}' AND boat.compNumber = {comp_num};"))
                         .fetch_optional(&self.conn)
                         .await
                         .unwrap_or(None);
-
         if maybe_id.is_none() {
             return None;
         }
@@ -378,8 +384,10 @@ impl Database {
     }
 
     pub async fn register_new_boat(&self, boat_form: RegisterBoatForm, yacht_club_id: i64) -> Option<i64> {
+        println!("Registering: {:?} for yacht club: {}", boat_form, yacht_club_id);
+
         let res = sqlx::query(&format!("INSERT INTO boat (compNumber, name, skipper, navigator, yachtClubId)
-                    VALUES ({}, {}, {}, {}, {});",
+                    VALUES ({}, '{}', '{}', '{}', {});",
                     boat_form.comp_number, boat_form.name, boat_form.skipper,
                     boat_form.navigator, yacht_club_id))
         .execute(&self.conn).await;
@@ -388,6 +396,18 @@ impl Database {
             Ok(result) => Some(result.last_insert_rowid()),
             Err(_) => None
         };
+    }
+
+    pub async fn get_all_registered_boats(&self, username: &str) -> Vec<RegisterBoatForm> {
+        let res: Vec<RegisterBoatForm> = sqlx::query_as(&format!("SELECT compNumber as comp_number, boat.name, skipper, navigator
+                                FROM boat INNER JOIN yachtClub ON boat.yachtClubId = yachtClub.yachtClubId
+                                INNER JOIN account ON account.yachtClubId = yachtClub.yachtClubId
+                                WHERE account.username = '{username}';"))
+        .fetch_all(&self.conn).await.unwrap_or(Vec::new());
+        
+        //println!("All boats: {:?}", res);
+
+        return res;
     }
 
     pub fn compute_race_results(&self) {

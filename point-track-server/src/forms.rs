@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginForm {
@@ -13,14 +14,14 @@ pub struct DateQuery {
 
 
 // Note: All times are in seconds since the Epoch (UNIX time)
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, FromRow)]
 pub struct Boat {
     pub id: i64,
     pub side: i64,
     pub time: i64
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, FromRow, Serialize, Debug)]
 pub struct RegisterBoatForm {
     pub comp_number: i64,
     pub name: String,
