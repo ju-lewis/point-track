@@ -399,13 +399,14 @@ impl Database {
     }
 
     pub async fn get_all_registered_boats(&self, username: &str) -> Vec<RegisterBoatForm> {
-        let res: Vec<RegisterBoatForm> = sqlx::query_as(&format!("SELECT compNumber as comp_number, boat.name, skipper, navigator
-                                FROM boat INNER JOIN yachtClub ON boat.yachtClubId = yachtClub.yachtClubId
-                                INNER JOIN account ON account.yachtClubId = yachtClub.yachtClubId
-                                WHERE account.username = '{username}';"))
+        let res: Vec<RegisterBoatForm> = sqlx::query_as(&format!(
+                    "SELECT compNumber as comp_number, boat.name, skipper, navigator
+                    FROM boat INNER JOIN yachtClub ON boat.yachtClubId = yachtClub.yachtClubId
+                    INNER JOIN account ON account.yachtClubId = yachtClub.yachtClubId
+                    WHERE account.username = '{username}';"))
         .fetch_all(&self.conn).await.unwrap_or(Vec::new());
         
-        //println!("All boats: {:?}", res);
+        println!("All boats: {:?}", res);
 
         return res;
     }

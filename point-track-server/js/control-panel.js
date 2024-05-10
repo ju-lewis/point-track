@@ -9,9 +9,6 @@ async function queryResults() {
 	document.getElementById("results").innerHTML = response;
 }
 
-async function queryNTRIP() {
-	
-}
 
 async function startRace() {
 
@@ -109,7 +106,16 @@ async function getRegisteredBoats() {
 	}
 	const boats = await res.json();
 
-	console.log("Registered boats:");
-	console.log(boats);
+	//console.log("Registered boats:");
+	//console.log(boats);
+
+	// Get registered list
+	const registeredList = document.getElementById("registered-boats");
+
+
+	let listContent = "";
+	boats.forEach((boat) => {listContent += `<li>${boat}</li>`});
+	console.log(listContent);
+	registeredList.innerHTML = listContent;
 }
 
