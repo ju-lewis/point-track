@@ -6,3 +6,7 @@ debug/
 
 # Backup files
 **/*.rs.bk
+
+
+# Testing Files
+./tests/env
