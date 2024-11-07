@@ -2,6 +2,8 @@
 # Build files
 target/
 debug/
+build/
+device/build/
 
 
 # Backup files
@@ -10,3 +12,7 @@ debug/
 
 # Testing Files
 ./tests/env
+
+
+
+

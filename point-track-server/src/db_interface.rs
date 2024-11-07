@@ -143,9 +143,9 @@ impl Database {
         let argon2 = Argon2::default();
 
         // Compare hashes
-        match argon2.verify_password(password, &db_password_hash.unwrap()) {
-            Ok(_) => return true,
-            Err(_) => return false
+        return match argon2.verify_password(password, &db_password_hash.unwrap()) {
+            Ok(_) => true,
+            Err(_) => false
         }
     }
 
