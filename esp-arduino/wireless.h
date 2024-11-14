@@ -3,7 +3,12 @@
  * 23/10/2024
  */
 
+#ifndef WIRELESS
+#define WIRELESS
 
 #include <stdlib.h>
 
 int getNumNetworks();
+
+
+#endif // !DEBUG

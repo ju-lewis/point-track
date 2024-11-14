@@ -13,6 +13,6 @@ device/build/
 # Testing Files
 ./tests/env
 
-
+env/*
 
 
