@@ -13,7 +13,14 @@ void setup() {
     LiquidCrystal lcd = LiquidCrystal(LCD_RS, LCD_ENABLE, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
     lcd.begin(8, 2);
     
+    // Configure race information
     RaceConfig config = enterConfig(lcd);
+
+    // Log Data
+    
+    // Transmit Data
+    scanAndConnect(lcd);
+    
 }
 
 void loop() {

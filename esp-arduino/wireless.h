@@ -7,8 +7,11 @@
 #define WIRELESS
 
 #include <stdlib.h>
+#include <LiquidCrystal.h>
+
 
 int getNumNetworks();
+void scanAndConnect(LiquidCrystal lcd);
 
 
-#endif // !DEBUG
+#endif
