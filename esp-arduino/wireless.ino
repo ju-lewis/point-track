@@ -3,6 +3,7 @@
 #include <WiFi.h>
 
 void printSSID(LiquidCrystal lcd, String SSID);
+void connectToNetwork(LiquidCrystal lcd, String SSID);
 
 int getNumNetworks() {
     return (int)WiFi.scanNetworks();
@@ -33,7 +34,7 @@ void scanAndConnect(LiquidCrystal lcd) {
         }
         if(wasPressed(ENTER_BTN)) {
             // Network chosen, go to password entry prompt
-            bool passwordEntered = false;
+            connectToNetwork(lcd, WiFi.SSID(curr));
         }
 
     }
@@ -50,5 +51,20 @@ void printSSID(LiquidCrystal lcd, String SSID) {
 
 
 
+void connectToNetwork(LiquidCrystal lcd, String SSID) {
 
+    char *chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*() .,_-~:;'\"`|+=?<>";
 
+    
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Password:");
+    lcd.setCursor(0,1);
+    //lcd.print("****************");
+
+    bool connected = false;
+    while(!connected) {
+        
+        connected = true;
+    }
+}
