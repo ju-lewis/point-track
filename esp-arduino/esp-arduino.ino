@@ -18,7 +18,7 @@ void setup() {
 
     // Log Data
     
-    // Transmit Data
+    // Transmit Date
     scanAndConnect(lcd);
     
 }
