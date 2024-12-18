@@ -8,6 +8,8 @@
 void setup() {
 
     Serial.begin(9600);
+    //Serial1.begin(38400);
+
     configurePins();
 
     LiquidCrystal lcd = LiquidCrystal(LCD_RS, LCD_ENABLE, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
@@ -21,6 +23,11 @@ void setup() {
     // Transmit Date
     scanAndConnect(lcd);
     
+    //while(true) {
+    //    if(Serial1.available() > 0) {
+    //        Serial.print(Serial1.read());
+    //    }
+    //}
 }
 
 void loop() {
