@@ -19,8 +19,9 @@ void setup() {
     RaceConfig config = enterConfig(lcd);
 
     // Log Data
+
     
-    // Transmit Date
+    // Transmit Data
     scanAndConnect(lcd);
     
     //while(true) {

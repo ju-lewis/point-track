@@ -11,3 +11,9 @@ int wasPressed(int btn) {
     }
     return 0;
 }
+
+
+
+int readFromUart() {
+    
+}

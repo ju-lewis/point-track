@@ -17,3 +17,5 @@
 
 
 int wasPressed(int btn);
+
+int readFromUart();
