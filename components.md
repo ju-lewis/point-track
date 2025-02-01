@@ -34,10 +34,13 @@ Any HD44780 compatible 16x2 display is fine
 - [x] LDO low-noise linear regulator
 - [x] 1x 18650 Holder
 - [x] Li-ion battery charger IC
-- [ ] Pin headers for flashing esp code
-- [ ] Pin headers for flashing f9p code
-- [ ] Master switch
+- [x] Pin headers for flashing esp code
+- [x] Pin headers for flashing f9p code
+- [x] Master switch
 - [x] USB-C port
+- [ ] Connector for button panel
+
+- [ ] Button panel schematic + PCB design
 
 
 # Power draw calculations
