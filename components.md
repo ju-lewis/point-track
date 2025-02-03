@@ -67,4 +67,30 @@ typ. current factor = 1610 A\Omega
 So I need 1610/1.25 ~= 1.3k resistor. (Actual output = 1.238 A)
 
 
+# Final Pinouts:
+
+## Button panel:
+- IO 14,15,16,17,18
+
+## ZED-F9P:
+- Reset: IO 6
+- MOSI: IO 5
+- MISO: IO 4
+
+## 128x64 OLED
+- SDA: IO 9
+- SCL: IO 10
+
+
+# Trace widths:
+Standard: 0.254mm
+Battery rail: 0.5mm
+Charge IC output: 0.4mm
+
+
+# NOTE:
+
+When programming the ZED-F9P and ESP32, connect TX to TX and RX to RX. The UART pin headers are intended to be read from the perspective of the master device.
+
+
 
