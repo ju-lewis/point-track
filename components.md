@@ -92,5 +92,18 @@ Charge IC output: 0.4mm
 
 When programming the ZED-F9P and ESP32, connect TX to TX and RX to RX. The UART pin headers are intended to be read from the perspective of the master device.
 
+## Final board dimensions:
+Board: 50.038mm * 99.949mm
+Height: 14.86mm + 10mm = 24.9mm
+
+19.812mm to the edge of the USB-C port
+
+2.159mm to the edge of the SMA connector
+41.148mm to the other edge of the SMA connector
+
+0.635mm to the side of the switch
+1.651mm to the other side of the switch
+
+
 
 
